@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Topic } from '../types';
+import { MathText } from '../utils/mathRenderer';
 import { X, Copy, Check, BookOpen, Code2 } from 'lucide-react';
 
 interface TheoryModalProps {
@@ -71,10 +72,8 @@ export const TheoryModal: React.FC<TheoryModalProps> = ({
           </div>
 
           {/* Core Theory Body */}
-          <div className="prose prose-invert max-w-none prose-pre:bg-slate-950 prose-pre:border prose-pre:border-slate-800">
-            <div className="whitespace-pre-line font-sans text-xs sm:text-sm text-slate-300">
-              {topic.coreTheory}
-            </div>
+          <div className="bg-slate-950/70 p-5 rounded-2xl border border-slate-800 shadow-inner">
+            <MathText content={topic.coreTheory} />
           </div>
         </div>
 

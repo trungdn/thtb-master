@@ -36,14 +36,16 @@ ${hint.guidance}
   }
 
   // Check for common student questions
-  if (msgLower.includes('subtask 1') || msgLower.includes('trâu') || msgLower.includes('ngây thơ')) {
+  if (msgLower.includes('subtask 1') || msgLower.includes('trâu') || msgLower.includes('ngây thơ') || msgLower.includes('vét cạn')) {
     const h2 = problem.hints.find(h => h.level === 2);
-    return `### 🛡️ Chiến lược ăn điểm Subtask 1 (Brute Force)
-Để chắc chắn có điểm trong kỳ thi Tin học trẻ, việc cài đặt thành công cách trâu cho Subtask 1 là cực kỳ quan trọng!
+    return `### 🛡️ Chiến lược Vét cạn (Ăn chắc điểm Subtask 1)
+Trong thi đấu Tin học trẻ, **"Ăn trâu"** là thuật ngữ quen thuộc chỉ **Thuật toán Vét cạn (Brute Force)** — tức là cách giải tự nhiên, thử hết mọi trường hợp để lấy trọn điểm cho các Subtask đầu tiên (khi $N$ còn nhỏ).
 
-${h2 ? h2.guidance : 'Hãy thử tất cả các trường hợp có thể với 2 vòng lặp lồng nhau hoặc hàm đệ quy đơn giản. Khi $N$ nhỏ, độ phức tạp $O(N^2)$ hoặc $O(2^N)$ hoàn toàn chạy kịp trong 1 giây!'}
+${h2 ? h2.guidance : 'Hãy thử tất cả các trường hợp có thể với 2 vòng lặp lồng nhau hoặc hàm đệ quy đơn giản. Khi $N$ nhỏ (ví dụ $N \\le 100$), độ phức tạp $O(N^2)$ hoàn toàn chạy kịp trong thời gian quy định 1.0s!'}
 
-*Bạn thử viết mã giả cho cách duyệt ngây thơ này xem?*`;
+💡 **Chiến thuật phòng thi**: Đừng để bị 0 điểm! Cài xong cách vét cạn này giúp bạn nắm chắc 30% - 50% số điểm của bài trước khi bắt tay vào tối ưu.
+
+*Bạn hãy thử viết mã giả cho cách duyệt vét cạn này xem nhé!*`;
   }
 
   if (msgLower.includes('tle') || msgLower.includes('chậm') || msgLower.includes('thời gian') || msgLower.includes('tối ưu')) {

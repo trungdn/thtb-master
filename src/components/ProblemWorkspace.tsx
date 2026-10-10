@@ -387,7 +387,7 @@ export const ProblemWorkspace: React.FC<ProblemWorkspaceProps> = ({
               <div className="space-y-4">
                 <div className="bg-indigo-950/30 border border-indigo-500/20 p-4 rounded-xl text-xs text-indigo-300">
                   <h4 className="font-bold text-sm text-indigo-200 mb-1">Cơ chế chấm điểm theo Subtask</h4>
-                  Trong kỳ thi Tin học trẻ, bạn không nhất thiết phải làm thuật toán tối ưu ngay. Hãy ưu tiên cài đặt cách trâu để lấy trọn điểm các Subtask đầu trước khi suy nghĩ thuật toán full điểm!
+                  Trong kỳ thi Tin học trẻ, bạn không nhất thiết phải làm thuật toán tối ưu full điểm ngay từ đầu. Hãy ưu tiên cài đặt thuật toán Vét cạn (Brute Force) để "ăn chắc" trọn vẹn điểm số của các Subtask đầu (thường chiếm 30 - 50% số điểm) trước khi suy nghĩ thuật toán tối ưu!
                 </div>
 
                 <div className="space-y-3">
@@ -410,8 +410,8 @@ export const ProblemWorkspace: React.FC<ProblemWorkspaceProps> = ({
 
             {leftTab === 'theory' && topic && (
               <div className="space-y-4">
-                <div className="prose prose-invert max-w-none text-xs sm:text-sm text-slate-300 whitespace-pre-line">
-                  {topic.coreTheory}
+                <div className="bg-slate-950/70 p-5 rounded-2xl border border-slate-800 shadow-inner">
+                  <MathText content={topic.coreTheory} />
                 </div>
               </div>
             )}
@@ -652,7 +652,7 @@ export const ProblemWorkspace: React.FC<ProblemWorkspaceProps> = ({
                       className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white border border-slate-700 transition-all"
                     >
                       {lvl === 1 && '1️⃣ Ràng buộc & Thời gian'}
-                      {lvl === 2 && '2️⃣ Ăn trâu Subtask 1'}
+                      {lvl === 2 && '2️⃣ Vét cạn (Ăn điểm Subtask 1)'}
                       {lvl === 3 && '3️⃣ Điểm mấu chốt tối ưu'}
                       {lvl === 4 && '4️⃣ Thiết lập trạng thái'}
                       {lvl === 5 && '5️⃣ Bắt bệnh Edge cases'}
