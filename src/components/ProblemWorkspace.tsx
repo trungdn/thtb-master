@@ -50,16 +50,16 @@ export const ProblemWorkspace: React.FC<ProblemWorkspaceProps> = ({
   const [leftTab, setLeftTab] = useState<'statement' | 'subtasks' | 'theory' | 'editorial'>('statement');
   const [rightTab, setRightTab] = useState<'editor' | 'socratic' | 'generator' | 'submissions'>('editor');
 
-  // Code editor states
-  const [language, setLanguage] = useState<'cpp' | 'python'>('cpp');
+  // Code editor states - Mặc định Python 3
+  const [language, setLanguage] = useState<'cpp' | 'python'>('python');
   const [code, setCode] = useState<string>(
-    language === 'cpp' ? problem.templateCodeCpp : problem.templateCodePy
+    language === 'python' ? problem.templateCodePy : problem.templateCodeCpp
   );
 
   // When language changes, update starter code if untouched
   const handleLanguageChange = (newLang: 'cpp' | 'python') => {
     setLanguage(newLang);
-    setCode(newLang === 'cpp' ? problem.templateCodeCpp : problem.templateCodePy);
+    setCode(newLang === 'python' ? problem.templateCodePy : problem.templateCodeCpp);
   };
 
   // Execution & Grading states
@@ -435,20 +435,25 @@ export const ProblemWorkspace: React.FC<ProblemWorkspaceProps> = ({
                 </div>
 
                 <div>
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
-                    Mã nguồn C++ tham khảo
-                  </h4>
-                  <pre className="bg-slate-950 border border-slate-800 rounded-xl p-4 text-xs font-mono text-emerald-400 overflow-x-auto whitespace-pre">
-                    {problem.solutionCodeCpp}
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-indigo-400">
+                      Mã nguồn Python 3 tham khảo
+                    </h4>
+                    <span className="text-[10px] text-indigo-300 font-semibold bg-indigo-500/10 px-2 py-0.5 rounded-full border border-indigo-500/30">
+                      Khuyên dùng Bảng B
+                    </span>
+                  </div>
+                  <pre className="bg-slate-950 border border-slate-800 rounded-xl p-4 text-xs font-mono text-indigo-300 overflow-x-auto whitespace-pre">
+                    {problem.solutionCodePy}
                   </pre>
                 </div>
 
                 <div>
                   <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
-                    Mã nguồn Python 3 tham khảo
+                    Mã nguồn C++ tham khảo
                   </h4>
-                  <pre className="bg-slate-950 border border-slate-800 rounded-xl p-4 text-xs font-mono text-indigo-400 overflow-x-auto whitespace-pre">
-                    {problem.solutionCodePy}
+                  <pre className="bg-slate-950 border border-slate-800 rounded-xl p-4 text-xs font-mono text-emerald-400 overflow-x-auto whitespace-pre">
+                    {problem.solutionCodeCpp}
                   </pre>
                 </div>
               </div>
@@ -505,15 +510,15 @@ export const ProblemWorkspace: React.FC<ProblemWorkspaceProps> = ({
                 <select
                   value={language}
                   onChange={e => handleLanguageChange(e.target.value as any)}
-                  className="bg-slate-950 border border-slate-700 text-slate-200 text-xs rounded-lg px-2.5 py-1 focus:outline-none font-semibold"
+                  className="bg-slate-950 border border-slate-700 text-slate-200 text-xs rounded-lg px-2.5 py-1 focus:outline-none font-semibold cursor-pointer"
                 >
-                  <option value="cpp">C++20</option>
-                  <option value="python">Python 3</option>
+                  <option value="python">🐍 Python 3 (Mặc định)</option>
+                  <option value="cpp">⚡ C++20</option>
                 </select>
 
                 <button
                   onClick={() =>
-                    setCode(language === 'cpp' ? problem.templateCodeCpp : problem.templateCodePy)
+                    setCode(language === 'python' ? problem.templateCodePy : problem.templateCodeCpp)
                   }
                   className="p-1.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
                   title="Khôi phục mã mẫu ban đầu"

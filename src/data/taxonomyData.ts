@@ -16,29 +16,53 @@ export const TOPICS: Topic[] = [
     coreTheory: `### 1. Số nguyên tố & Sàng Eratosthenes
 - **Kiểm tra nguyên tố căn bậc hai**: Một số nguyên dương $N$ là số nguyên tố nếu không chia hết cho bất kỳ số nào từ $2$ đến $\\lfloor\\sqrt{N}\\rfloor$. Độ phức tạp: $O(\\sqrt{N})$.
 - **Sàng Eratosthenes**: Sàng các số nguyên tố tới $10^6$ hoặc $10^7$ trong thời gian $O(N \\log \\log N)$.
+
+#### 🐍 Mẫu Python 3:
+\`\`\`python
+import math
+
+def is_prime(n):
+    if n < 2:
+        return False
+    for i in range(2, math.isqrt(n) + 1):
+        if n % i == 0:
+            return False
+    return True
+
+# Sàng Eratosthenes tới MAXN
+MAXN = 1000000
+is_p = [True] * (MAXN + 1)
+is_p[0] = is_p[1] = False
+for p in range(2, math.isqrt(MAXN) + 1):
+    if is_p[p]:
+        for i in range(p * p, MAXN + 1, p):
+            is_p[i] = False
+\`\`\`
+
+#### ⚡ Mẫu C++:
 \`\`\`cpp
 const int MAXN = 1000000;
-bool is_prime[MAXN + 1];
+bool is_p[MAXN + 1];
 void sieve() {
-    fill(is_prime, is_prime + MAXN + 1, true);
-    is_prime[0] = is_prime[1] = false;
+    fill(is_p, is_p + MAXN + 1, true);
+    is_p[0] = is_p[1] = false;
     for (int p = 2; p * p <= MAXN; p++) {
-        if (is_prime[p]) {
-            for (int i = p * p; i <= MAXN; i += p)
-                is_prime[i] = false;
+        if (is_p[p]) {
+            for (int i = p * p; i <= MAXN; i += p) is_p[i] = false;
         }
     }
 }
 \`\`\`
 
 ### 2. Ước chung lớn nhất & Đồng dư
-- Thuật toán Euclid: $\\gcd(a, b) = \\gcd(b, a \\pmod b)$. Trong C++ dùng \`std::__gcd(a, b)\`.
-- Phép toán chia có dư với số lớn:
+- **Python**: Dùng thư viện có sẵn \`import math; g = math.gcd(a, b)\`.
+- **C++**: Dùng \`std::__gcd(a, b)\`.
+- **Đồng dư thức với số lớn**:
   - $(A + B) \\pmod M = (A \\pmod M + B \\pmod M) \\pmod M$
   - $(A \\times B) \\pmod M = ((A \\pmod M) \\times (B \\pmod M)) \\pmod M$
 
 ### 3. Số lớn (BigNum)
-Rất hay gặp trong các bài vòng sơ loại bảng B: xử lý các số có tới $100$ đến $10^5$ chữ số bằng chuỗi ký tự \`string\`.`
+> 💡 **Ưu thế tuyệt đối của Python**: Kiểu số nguyên \`int\` trong Python tự động hỗ trợ số lớn vô hạn chữ số mà không bị tràn số! Học sinh dùng Python có thể tính $2^{1000}$ hoặc cộng trừ nhân chia số hàng trăm chữ số trực tiếp.`
   },
   {
     id: 'arrays-pointers',
@@ -52,24 +76,49 @@ Rất hay gặp trong các bài vòng sơ loại bảng B: xử lý các số c�
     icon: 'Layers',
     level: 'Cơ bản',
     tags: ['Prefix Sum', 'Hai con trỏ', 'Sliding Window', 'Mảng hiệu'],
-    coreTheory: `### 1. Mảng cộng dồn 1D & 2D
+    coreTheory: `### 1. Mảng cộng dồn (Prefix Sum 1D & 2D)
 - **1D Prefix Sum**: $pref[i] = pref[i-1] + a[i]$.
   - Tổng đoạn $[L, R]$ tính trong $O(1)$: $Sum(L, R) = pref[R] - pref[L-1]$.
-- **2D Prefix Sum**: Tính tổng hình chữ nhật con từ $(x_1, y_1)$ đến $(x_2, y_2)$ trong $O(1)$:
-  $$Sum = pref[x_2][y_2] - pref[x_1-1][y_2] - pref[x_2][y_1-1] + pref[x_1-1][y_1-1]$$
+
+#### 🐍 Mẫu Python 3:
+\`\`\`python
+# Khởi tạo mảng cộng dồn 1D
+pref = [0] * (n + 1)
+for i in range(n):
+    pref[i + 1] = pref[i] + a[i]
+
+# Truy vấn tổng đoạn [L, R] (1-indexed) trong O(1):
+def query_sum(L, R):
+    return pref[R] - pref[L - 1]
+\`\`\`
 
 ### 2. Kỹ thuật Hai con trỏ (Two Pointers)
-Thường áp dụng khi mảng đã sắp xếp hoặc cần tìm đoạn liên tiếp thỏa mãn điều kiện đơn điệu:
+Thường áp dụng khi mảng đã sắp xếp hoặc cần tìm đoạn con liên tiếp thỏa mãn điều kiện đơn điệu:
+
+#### 🐍 Mẫu Python 3:
+\`\`\`python
+left = 0
+current_sum = 0
+ans = 0
+
+for right in range(n):
+    current_sum += a[right]
+    while current_sum > K and left <= right:
+        current_sum -= a[left]
+        left += 1
+    # Đoạn [left, right] hiện tại có tổng <= K
+    ans = max(ans, right - left + 1)
+\`\`\`
+
+#### ⚡ Mẫu C++:
 \`\`\`cpp
 int left = 0;
 long long current_sum = 0;
 for (int right = 0; right < n; right++) {
     current_sum += a[right];
     while (current_sum > K && left <= right) {
-        current_sum -= a[left];
-        left++;
+        current_sum -= a[left++];
     }
-    // Cập nhật kết quả tại đây
 }
 \`\`\``
   },
@@ -87,26 +136,32 @@ for (int right = 0; right < n; right++) {
     tags: ['Chặt nhị phân kết quả', 'lower_bound', 'Tối ưu hóa', 'Tính đơn điệu'],
     coreTheory: `### 1. Dấu hiệu nhận biết Chặt nhị phân kết quả
 - Đề bài yêu cầu: *"Tìm giá trị $X$ nhỏ nhất sao cho..."* hoặc *"Tìm giá trị $X$ lớn nhất sao cho..."*.
-- Ràng buộc kết quả nằm trong khoảng $[L, R]$ với không gian nghiệm đơn điệu:
+- Ràng buộc nghiệm nằm trong khoảng $[L, R]$ có tính đơn điệu:
   - Nếu giá trị $mid$ thỏa mãn thì mọi giá trị lớn hơn (hoặc nhỏ hơn) cũng thỏa mãn.
-  - Hàm kiểm tra tính khả thi \`check(mid)\` chạy được trong $O(N)$ hoặc $O(N \\log N)$.
+  - Hàm kiểm tra tính khả thi \`check(mid)\` chạy được trong $O(N)$.
 
-\`\`\`cpp
-bool check(long long mid) {
-    // Kiểm tra xem mid có thỏa mãn yêu cầu đề bài không
-    return true; // hoặc false
-}
+#### 🐍 Mẫu Python 3:
+\`\`\`python
+def check(mid):
+    # Kiểm tra mid có thỏa mãn yêu cầu đề bài hay không
+    return True
 
-long long low = 1, high = 1e18, ans = -1;
-while (low <= high) {
-    long long mid = low + (high - low) / 2;
-    if (check(mid)) {
-        ans = mid;
-        high = mid - 1; // Tìm giá trị nhỏ nhất
-    } else {
-        low = mid + 1;
-    }
-}
+low, high = 1, 10**18
+ans = -1
+while low <= high:
+    mid = (low + high) // 2
+    if check(mid):
+        ans = mid
+        high = mid - 1  # Tìm giá trị nhỏ nhất
+    else:
+        low = mid + 1
+print(ans)
+\`\`\`
+
+> 💡 **Mẹo Python**: Dùng thư viện \`bisect\` để tìm kiếm phần tử trên mảng đã sắp xếp:
+\`\`\`python
+import bisect
+pos = bisect.bisect_left(arr, x)  # Tương đương lower_bound trong C++
 \`\`\``
   },
   {
@@ -126,15 +181,32 @@ while (low <= high) {
 2. **Cấu trúc con tối ưu**: Nghiệm tối ưu của bài toán chứa nghiệm tối ưu của các bài toán con.
 
 ### 2. Các mô hình DP kinh điển bảng B:
-- **Dãy con tăng dài nhất (LIS)**:
-  - $dp[i]$: Độ dài dãy con tăng dài nhất kết thúc tại vị trí $i$.
-  - Công thức: $dp[i] = \\max(dp[j] + 1)$ với mọi $j < i$ và $a[j] < a[i]$.
-  - Tối ưu $O(N \\log N)$ bằng mảng đơn điệu kết hợp \`lower_bound\`.
-- **Bài toán Ba-lô (0/1 Knapsack)**:
-  - $dp[w]$: Giá trị lớn nhất đạt được với khối lượng túi bằng $w$.
-  - $dp[w] = \\max(dp[w], dp[w - weight[i]] + value[i])$.
-- **DP trên lưới ô vuông**:
-  - $dp[i][j] = \\min(dp[i-1][j], dp[i][j-1]) + cost[i][j]$.`
+
+#### 🐍 Mẫu Python 3: Dãy con tăng dài nhất (LIS)
+\`\`\`python
+# LIS cơ bản O(N^2)
+dp = [1] * n
+for i in range(n):
+    for j in range(i):
+        if a[j] < a[i]:
+            dp[i] = max(dp[i], dp[j] + 1)
+print(max(dp))
+\`\`\`
+
+#### 🐍 Mẫu Python 3: Ba-lô 0/1 (Knapsack)
+\`\`\`python
+# dp[w]: Giá trị lớn nhất với sức chứa w
+dp = [0] * (W + 1)
+for weight, value in items:
+    for w in range(W, weight - 1, -1):
+        dp[w] = max(dp[w], dp[w - weight] + value)
+print(dp[W])
+\`\`\`
+
+#### 🐍 Mẫu Python 3: DP Lưới ô vuông 2D
+\`\`\`python
+# dp[i][j] = min(dp[i-1][j], dp[i][j-1]) + cost[i][j]
+\`\`\``
   },
   {
     id: 'greedy-sorting',
@@ -154,7 +226,21 @@ while (low <= high) {
 
 ### 2. Bài toán chọn đoạn (Interval Scheduling)
 - Đề bài: Cho $N$ công việc với thời gian $[L_i, R_i]$, hãy chọn nhiều công việc nhất sao cho không trùng nhau.
-- Chiến lược: Sắp xếp các đoạn theo **thời điểm kết thúc $R_i$ tăng dần**. Luôn ưu tiên chọn công việc kết thúc sớm nhất.`
+- Chiến lược: Sắp xếp các đoạn theo **thời điểm kết thúc $R_i$ tăng dần**.
+
+#### 🐍 Mẫu Python 3:
+\`\`\`python
+# Sắp xếp danh sách các đoạn (start, end) theo end tăng dần
+intervals.sort(key=lambda x: x[1])
+
+count = 0
+last_end = -float('inf')
+for start, end in intervals:
+    if start >= last_end:
+        count += 1
+        last_end = end
+print("Số đoạn chọn được nhiều nhất:", count)
+\`\`\``
   },
   {
     id: 'strings',
@@ -168,20 +254,32 @@ while (low <= high) {
     icon: 'FileText',
     level: 'Cơ bản',
     tags: ['Palindrome', 'Xâu con', 'Tần suất', 'ASCII', 'Chuẩn hóa'],
-    coreTheory: `### 1. Các thao tác xâu cơ bản trong C++
-- \`std::string s;\`
-- Chiều dài: \`s.length()\` hoặc \`s.size()\`
-- Cắt xâu con: \`s.substr(pos, len)\`
-- Tìm kiếm ký tự: \`s.find(target)\`
+    coreTheory: `### 1. Các thao tác xâu siêu mạnh trong Python
+- **Đảo ngược chuỗi (Kiểm tra Palindrome)**: \`s == s[::-1]\` (cực kỳ ngắn gọn so với C++!).
+- **Độ dài**: \`len(s)\`
+- **Cắt xâu con**: \`s[start:end]\`
+- **Đếm số lần xuất hiện**: \`s.count('a')\`
+- **Tách từ theo dấu cách**: \`s.split()\`
+- **Mã ASCII**: \`ord('A') = 65\`, \`chr(65) = 'A'\`
 
-### 2. Xâu đối xứng (Palindrome)
-- Kiểm tra tính đối xứng hai con trỏ từ ngoài vào trong:
+#### 🐍 Mẫu Python 3:
+\`\`\`python
+# Kiểm tra xâu đối xứng (Palindrome)
+def is_palindrome(s):
+    return s == s[::-1]
+
+# Đếm tần suất ký tự
+freq = {}
+for ch in s:
+    freq[ch] = freq.get(ch, 0) + 1
+\`\`\`
+
+#### ⚡ Mẫu C++:
 \`\`\`cpp
 bool isPalindrome(const string &s) {
     int l = 0, r = s.size() - 1;
     while (l < r) {
-        if (s[l] != s[r]) return false;
-        l++; r--;
+        if (s[l++] != s[r--]) return false;
     }
     return true;
 }
@@ -200,21 +298,28 @@ bool isPalindrome(const string &s) {
     level: 'Trung bình',
     tags: ['Sinh hoán vị', 'Tổ hợp', 'Quay lui', 'Nhánh cận', 'Vét cạn'],
     coreTheory: `### 1. Khung mẫu Thuật toán Quay lui
-\`\`\`cpp
-void backtrack(int step) {
-    if (step > N) {
-        // Đã xây dựng xong một cấu hình hoàn chỉnh
-        updateSolution();
-        return;
-    }
-    for (int candidate : validChoices(step)) {
-        applyChoice(candidate);
-        if (isFeasible()) { // Tỉa nhánh cận nếu không khả thi
-            backtrack(step + 1);
-        }
-        revertChoice(candidate); // Hoàn tác lựa chọn
-    }
-}
+
+#### 🐍 Mẫu Python 3:
+\`\`\`python
+def backtrack(step):
+    if step == N:
+        # Đã xây dựng xong một cấu hình hoàn chỉnh
+        update_solution()
+        return
+    for choice in get_valid_choices(step):
+        apply_choice(choice)
+        if is_feasible():  # Tỉa nhánh cận nếu không khả thi
+            backtrack(step + 1)
+        revert_choice(choice)  # Hoàn tác lựa chọn
+\`\`\`
+
+> 💡 **Thư viện sinh hoán vị & tổ hợp sẵn trong Python**:
+\`\`\`python
+from itertools import permutations, combinations
+# Sinh tất cả hoán vị của danh sách
+perms = list(permutations([1, 2, 3]))
+# Sinh tất cả tổ hợp chập 2
+combs = list(combinations([1, 2, 3], 2))
 \`\`\``
   },
   {
@@ -229,12 +334,38 @@ void backtrack(int step) {
     icon: 'Network',
     level: 'Nâng cao',
     tags: ['Stack', 'Queue', 'BFS Lưới', 'Cây Fenwick (BIT)'],
-    coreTheory: `### 1. Ngăn xếp (Stack) kiểm tra ngoặc
-- Đẩy dấu mở \`(\`, \`[\`, \`{\` vào stack.
-- Khi gặp dấu đóng, kiểm tra đỉnh stack có tương ứng loại ngoặc không. Nếu có thì \`pop()\`, ngược lại xâu không hợp lệ.
+    coreTheory: `### 1. Ngăn xếp (Stack) kiểm tra ngoặc đúng trong Python
+\`\`\`python
+def is_valid_brackets(s):
+    stack = []
+    pairs = {')': '(', ']': '[', '}': '{'}
+    for ch in s:
+        if ch in '([{':
+            stack.append(ch)
+        elif ch in ')]}':
+            if not stack or stack[-1] != pairs[ch]:
+                return False
+            stack.pop()
+    return len(stack) == 0
+\`\`\`
 
-### 2. BFS Loang trên Lưới ô vuông
-- 4 hướng di chuyển: \`dx[] = {-1, 1, 0, 0}\`, \`dy[] = {0, 0, -1, 1}\`.
-- Dùng \`std::queue<pair<int, int>>\` để tìm đường đi ngắn nhất.`
+### 2. BFS Loang trên Lưới ô vuông trong Python
+\`\`\`python
+from collections import deque
+
+dx = [-1, 1, 0, 0]
+dy = [0, 0, -1, 1]
+
+queue = deque([(start_x, start_y)])
+visited = set([(start_x, start_y)])
+
+while queue:
+    x, y = queue.popleft()
+    for i in range(4):
+        nx, ny = x + dx[i], y + dy[i]
+        if 0 <= nx < rows and 0 <= ny < cols and (nx, ny) not in visited:
+            visited.add((nx, ny))
+            queue.append((nx, ny))
+\`\`\``
   }
 ];
