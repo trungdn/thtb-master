@@ -1,12 +1,13 @@
 import React from 'react';
-import { Trophy, Flame, Target, BookOpen, Layers, Radar, User, Code2 } from 'lucide-react';
-import { UserProfile } from '../types';
+import { Trophy, Flame, BookOpen, Layers, Radar, Code2, UserPlus, LogIn, ChevronDown } from 'lucide-react';
+import type { UserProfile } from '../types';
 
 interface HeaderProps {
   profile: UserProfile;
-  activeView: 'topics' | 'problems' | 'radar' | 'theory';
-  onSelectView: (view: 'topics' | 'problems' | 'radar' | 'theory') => void;
+  activeView: 'topics' | 'problems' | 'radar';
+  onSelectView: (view: 'topics' | 'problems' | 'radar') => void;
   onOpenProfile: () => void;
+  onOpenAuth: () => void;
   totalProblemsCount: number;
 }
 
@@ -15,8 +16,10 @@ export const Header: React.FC<HeaderProps> = ({
   activeView,
   onSelectView,
   onOpenProfile,
+  onOpenAuth,
   totalProblemsCount
 }) => {
+  const isGuest = profile.id === 'guest';
   const solvedCount = profile.solvedProblemIds.length;
   const progressPercent = Math.round((solvedCount / totalProblemsCount) * 100);
 
@@ -83,30 +86,46 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* User Stats & Profile Widget */}
           <div className="flex items-center gap-3">
-            {/* Streak Counter */}
-            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 bg-amber-500/10 border border-amber-500/25 rounded-lg text-amber-400 text-xs font-bold" title="Số ngày luyện tập liên tục">
-              <Flame className="w-4 h-4 text-amber-400 fill-amber-400 animate-pulse" />
-              <span>{profile.streak} ngày</span>
-            </div>
+            {/* Streak Counter (chỉ hiện khi đã đăng nhập) */}
+            {!isGuest && (
+              <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 bg-amber-500/10 border border-amber-500/25 rounded-lg text-amber-400 text-xs font-bold" title="Số ngày luyện tập liên tục">
+                <Flame className="w-4 h-4 text-amber-400 fill-amber-400 animate-pulse" />
+                <span>{profile.streak} ngày</span>
+              </div>
+            )}
 
             {/* Solved Progress */}
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-slate-900 border border-slate-800 rounded-lg text-xs">
-              <Trophy className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="font-semibold text-slate-200">{solvedCount} / {totalProblemsCount}</span>
-              <span className="text-[10px] text-emerald-400 font-bold">({progressPercent}%)</span>
-            </div>
-
-            {/* Student Profile Button */}
-            <button
-              onClick={onOpenProfile}
-              className="flex items-center gap-2 p-1.5 sm:px-3 sm:py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/80 transition-all text-xs font-semibold text-slate-200"
-            >
-              <span className="text-base">{profile.avatar}</span>
-              <div className="hidden md:block text-left">
-                <div className="text-xs font-bold leading-tight">{profile.name}</div>
-                <div className="text-[10px] text-slate-400 leading-tight">{profile.school} • {profile.grade}</div>
+            {!isGuest && (
+              <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-slate-900 border border-slate-800 rounded-lg text-xs">
+                <Trophy className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="font-semibold text-slate-200">{solvedCount} / {totalProblemsCount}</span>
+                <span className="text-[10px] text-emerald-400 font-bold">({progressPercent}%)</span>
               </div>
-            </button>
+            )}
+
+            {/* If Guest: Login/Register button */}
+            {isGuest ? (
+              <button
+                onClick={onOpenAuth}
+                className="flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-indigo-600/20"
+              >
+                <UserPlus className="w-4 h-4" />
+                <span>Đăng ký / Đăng nhập</span>
+              </button>
+            ) : (
+              /* If Logged in: Student Profile Button */
+              <button
+                onClick={onOpenProfile}
+                className="flex items-center gap-2 p-1.5 sm:px-3 sm:py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/80 transition-all text-xs font-semibold text-slate-200"
+              >
+                <span className="text-base">{profile.avatar}</span>
+                <div className="hidden md:block text-left">
+                  <div className="text-xs font-bold leading-tight">{profile.name}</div>
+                  <div className="text-[10px] text-slate-400 leading-tight">@{profile.username} • {profile.grade}</div>
+                </div>
+                <ChevronDown className="w-3.5 h-3.5 text-slate-400 ml-0.5 hidden sm:block" />
+              </button>
+            )}
           </div>
         </div>
       </div>

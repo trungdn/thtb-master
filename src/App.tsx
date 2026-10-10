@@ -6,6 +6,7 @@ import { SkillRadar } from './components/SkillRadar';
 import { ProblemWorkspace } from './components/ProblemWorkspace';
 import { TheoryModal } from './components/TheoryModal';
 import { ProfileModal } from './components/ProfileModal';
+import { AuthModal } from './components/AuthModal';
 import { TOPICS } from './data/taxonomyData';
 import { PROBLEMS } from './data/problemsData';
 import { getUserProfile, getRadarTopicStats, getRecommendedProblem } from './utils/storage';
@@ -31,6 +32,7 @@ export function App() {
   const [activeProblem, setActiveProblem] = useState<Problem | null>(null);
   const [theoryTopic, setTheoryTopic] = useState<Topic | null>(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
 
   // Refresh user profile state
   const refreshProfile = () => {
@@ -59,13 +61,10 @@ export function App() {
         profile={profile}
         activeView={activeView}
         onSelectView={view => {
-          if (view === 'theory') {
-            setTheoryTopic(TOPICS[0]);
-          } else {
-            setActiveView(view);
-          }
+          setActiveView(view);
         }}
         onOpenProfile={() => setIsProfileOpen(true)}
+        onOpenAuth={() => setIsAuthOpen(true)}
         totalProblemsCount={PROBLEMS.length}
       />
 
@@ -263,7 +262,17 @@ export function App() {
         isOpen={isProfileOpen}
         onClose={() => setIsProfileOpen(false)}
         onProfileUpdate={refreshProfile}
+        onOpenAuth={() => setIsAuthOpen(true)}
         totalProblemsCount={PROBLEMS.length}
+      />
+
+      <AuthModal
+        isOpen={isAuthOpen}
+        onClose={() => setIsAuthOpen(false)}
+        onAuthSuccess={_user => {
+          refreshProfile();
+          setIsAuthOpen(false);
+        }}
       />
     </div>
   );

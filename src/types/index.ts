@@ -95,6 +95,8 @@ export interface UserSubmission {
 
 export interface UserProfile {
   id: string;
+  username: string;
+  password?: string;
   name: string;
   avatar: string;
   school: string;
@@ -102,6 +104,7 @@ export interface UserProfile {
   target: string;
   streak: number;
   lastActiveDate: string;
+  createdAt?: number;
   solvedProblemIds: string[];
   partialProblemIds: string[];
   bookmarkedIds: string[];

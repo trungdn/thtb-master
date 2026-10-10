@@ -2,10 +2,29 @@ import { UserProfile, UserSubmission, Problem, TopicId, ChatMessage } from '../t
 import { PROBLEMS } from '../data/problemsData';
 import { TOPICS } from '../data/taxonomyData';
 
-const STORAGE_KEY = 'thtb_user_profile_v1';
+const ACCOUNTS_KEY = 'thtb_accounts_v2';
+const ACTIVE_USERNAME_KEY = 'thtb_active_username_v2';
 
-export const DEFAULT_PROFILE: UserProfile = {
-  id: 'student-thtb-01',
+export const GUEST_PROFILE: UserProfile = {
+  id: 'guest',
+  username: 'khach',
+  name: 'Học viên Khách',
+  avatar: '👤',
+  school: 'Chưa cập nhật',
+  grade: 'Lớp 8',
+  target: 'Rèn luyện Tin Học Trẻ Bảng B',
+  streak: 1,
+  lastActiveDate: new Date().toISOString().split('T')[0],
+  solvedProblemIds: [],
+  partialProblemIds: [],
+  bookmarkedIds: [],
+  submissions: [],
+  aiChats: {}
+};
+
+export const SAMPLE_ACCOUNT: UserProfile = {
+  id: 'user-sample-01',
+  username: 'demo_thcs',
   name: 'Nguyễn Văn Minh',
   avatar: '👨‍💻',
   school: 'THCS Lê Quý Đôn',
@@ -13,6 +32,7 @@ export const DEFAULT_PROFILE: UserProfile = {
   target: 'Giải Nhất Tin Học Trẻ Bảng B Toàn Quốc',
   streak: 5,
   lastActiveDate: new Date().toISOString().split('T')[0],
+  createdAt: Date.now() - 86400000 * 10,
   solvedProblemIds: ['24tht-calexp', '25kv-bnum', 'tht2022-mn-chianhom'],
   partialProblemIds: ['tht2023-kv-daysotongk', '25kv-bonus'],
   bookmarkedIds: ['25kv-cakes', 'tht24ck-chiaday'],
@@ -63,27 +83,181 @@ export const DEFAULT_PROFILE: UserProfile = {
   aiChats: {}
 };
 
-export function getUserProfile(): UserProfile {
+/** Lấy danh sách tất cả tài khoản đã lưu trên máy */
+export function getAllAccounts(): Record<string, UserProfile> {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(ACCOUNTS_KEY);
     if (!raw) {
-      saveUserProfile(DEFAULT_PROFILE);
-      return DEFAULT_PROFILE;
+      // Khởi tạo sẵn tài khoản mẫu demo để học sinh tham khảo nếu muốn
+      const initial: Record<string, UserProfile> = {
+        [SAMPLE_ACCOUNT.username]: SAMPLE_ACCOUNT
+      };
+      localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(initial));
+      return initial;
     }
     return JSON.parse(raw);
   } catch {
-    return DEFAULT_PROFILE;
+    return { [SAMPLE_ACCOUNT.username]: SAMPLE_ACCOUNT };
   }
 }
 
-export function saveUserProfile(profile: UserProfile): void {
+/** Lưu danh sách tài khoản */
+function saveAllAccounts(accounts: Record<string, UserProfile>): void {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
+    localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
   } catch (e) {
-    console.error('Error saving user profile to localStorage', e);
+    console.error('Lỗi lưu danh sách tài khoản vào localStorage', e);
   }
 }
 
+/** Lấy tên đăng nhập của tài khoản đang active */
+export function getActiveUsername(): string | null {
+  try {
+    return localStorage.getItem(ACTIVE_USERNAME_KEY);
+  } catch {
+    return null;
+  }
+}
+
+/** Đặt tài khoản đang active */
+export function setActiveUsername(username: string | null): void {
+  try {
+    if (username) {
+      localStorage.setItem(ACTIVE_USERNAME_KEY, username);
+    } else {
+      localStorage.removeItem(ACTIVE_USERNAME_KEY);
+    }
+  } catch (e) {
+    console.error('Lỗi đặt active username', e);
+  }
+}
+
+/** Kiểm tra đã đăng nhập chưa */
+export function isLoggedIn(): boolean {
+  const activeUser = getActiveUsername();
+  if (!activeUser) return false;
+  const accounts = getAllAccounts();
+  return Boolean(accounts[activeUser]);
+}
+
+/** Lấy hồ sơ người dùng hiện tại (nếu chưa đăng nhập, trả về GUEST_PROFILE) */
+export function getUserProfile(): UserProfile {
+  const activeUsername = getActiveUsername();
+  const accounts = getAllAccounts();
+
+  if (activeUsername && accounts[activeUsername]) {
+    return accounts[activeUsername];
+  }
+
+  // Nếu chưa đăng nhập, thử tìm tài khoản đầu tiên hoặc trả về Guest
+  return GUEST_PROFILE;
+}
+
+/** Lưu cập nhật hồ sơ người dùng hiện tại */
+export function saveUserProfile(profile: UserProfile): void {
+  const accounts = getAllAccounts();
+  accounts[profile.username] = profile;
+  saveAllAccounts(accounts);
+  setActiveUsername(profile.username);
+}
+
+/** Đăng ký tài khoản mới */
+export function registerAccount(data: {
+  username: string;
+  password?: string;
+  name: string;
+  school: string;
+  grade: string;
+  target: string;
+  avatar: string;
+}): { success: boolean; error?: string; user?: UserProfile } {
+  const cleanUsername = data.username.trim().toLowerCase();
+  if (!cleanUsername) {
+    return { success: false, error: 'Tên đăng nhập không được để trống!' };
+  }
+  if (!/^[a-z0-9_]{3,20}$/.test(cleanUsername)) {
+    return {
+      success: false,
+      error: 'Tên đăng nhập từ 3-20 ký tự, chỉ gồm chữ thường không dấu, số và gạch dưới (_).'
+    };
+  }
+
+  const accounts = getAllAccounts();
+  if (accounts[cleanUsername]) {
+    return { success: false, error: 'Tên đăng nhập này đã tồn tại trên thiết bị. Vui lòng chọn tên khác!' };
+  }
+
+  const newProfile: UserProfile = {
+    id: 'user-' + Date.now(),
+    username: cleanUsername,
+    password: data.password || '',
+    name: data.name.trim() || cleanUsername,
+    school: data.school.trim() || 'Chưa cập nhật',
+    grade: data.grade || 'Lớp 8',
+    target: data.target.trim() || 'Rèn luyện Tin Học Trẻ Bảng B',
+    avatar: data.avatar || '👨‍💻',
+    streak: 1,
+    lastActiveDate: new Date().toISOString().split('T')[0],
+    createdAt: Date.now(),
+    solvedProblemIds: [],
+    partialProblemIds: [],
+    bookmarkedIds: [],
+    submissions: [],
+    aiChats: {}
+  };
+
+  accounts[cleanUsername] = newProfile;
+  saveAllAccounts(accounts);
+  setActiveUsername(cleanUsername);
+
+  return { success: true, user: newProfile };
+}
+
+/** Đăng nhập tài khoản */
+export function loginAccount(
+  username: string,
+  password?: string
+): { success: boolean; error?: string; user?: UserProfile } {
+  const cleanUsername = username.trim().toLowerCase();
+  const accounts = getAllAccounts();
+  const user = accounts[cleanUsername];
+
+  if (!user) {
+    return { success: false, error: 'Không tìm thấy tài khoản với tên đăng nhập này!' };
+  }
+
+  if (user.password && user.password !== password) {
+    return { success: false, error: 'Mật khẩu không chính xác. Vui lòng thử lại!' };
+  }
+
+  // Cập nhật streak nếu đăng nhập ngày mới
+  const today = new Date().toISOString().split('T')[0];
+  if (user.lastActiveDate !== today) {
+    user.streak += 1;
+    user.lastActiveDate = today;
+    saveUserProfile(user);
+  }
+
+  setActiveUsername(cleanUsername);
+  return { success: true, user };
+}
+
+/** Đăng xuất về chế độ Guest */
+export function logoutAccount(): void {
+  setActiveUsername(null);
+}
+
+/** Chuyển đổi nhanh tài khoản */
+export function switchAccount(username: string): boolean {
+  const accounts = getAllAccounts();
+  if (accounts[username]) {
+    setActiveUsername(username);
+    return true;
+  }
+  return false;
+}
+
+/** Ghi nhận bài nộp */
 export function recordSubmission(
   problemId: string,
   language: 'cpp' | 'python',
@@ -94,7 +268,7 @@ export function recordSubmission(
 ): UserSubmission {
   const profile = getUserProfile();
   const status = score === maxScore ? 'AC' : score > 0 ? 'PARTIAL' : 'WA';
-  
+
   const newSubmission: UserSubmission = {
     id: 'sub-' + Date.now(),
     problemId,
@@ -113,7 +287,6 @@ export function recordSubmission(
     if (!profile.solvedProblemIds.includes(problemId)) {
       profile.solvedProblemIds.push(problemId);
     }
-    // Remove from partial if now full AC
     profile.partialProblemIds = profile.partialProblemIds.filter(id => id !== problemId);
   } else if (status === 'PARTIAL') {
     if (!profile.solvedProblemIds.includes(problemId) && !profile.partialProblemIds.includes(problemId)) {
@@ -121,7 +294,6 @@ export function recordSubmission(
     }
   }
 
-  // Update streak if needed
   const today = new Date().toISOString().split('T')[0];
   if (profile.lastActiveDate !== today) {
     profile.streak += 1;
@@ -132,6 +304,7 @@ export function recordSubmission(
   return newSubmission;
 }
 
+/** Đánh dấu yêu thích bài tập */
 export function toggleBookmark(problemId: string): boolean {
   const profile = getUserProfile();
   const index = profile.bookmarkedIds.indexOf(problemId);
@@ -154,12 +327,13 @@ export interface TopicStat {
   totalProblems: number;
   solvedCount: number;
   partialCount: number;
-  masteryScore: number; // 0 to 100
+  masteryScore: number;
 }
 
+/** Thống kê độ thành thạo 8 dạng bài cho tài khoản hiện tại */
 export function getRadarTopicStats(): TopicStat[] {
   const profile = getUserProfile();
-  
+
   return TOPICS.map(topic => {
     const topicProblems = PROBLEMS.filter(p => p.topicId === topic.id);
     const total = topicProblems.length;
@@ -186,7 +360,7 @@ export function getRadarTopicStats(): TopicStat[] {
         totalScoreObtained += 100;
       } else if (profile.partialProblemIds.includes(p.id)) {
         partialCount++;
-        totalScoreObtained += 40; // Partial credit
+        totalScoreObtained += 40;
       }
     });
 
@@ -205,13 +379,13 @@ export function getRadarTopicStats(): TopicStat[] {
   });
 }
 
+/** Gợi ý bài tiếp theo dựa trên dạng bài yếu nhất của tài khoản hiện tại */
 export function getRecommendedProblem(): Problem | null {
   const profile = getUserProfile();
   const stats = getRadarTopicStats();
-  
-  // Sort topics by lowest mastery score
+
   const sortedStats = [...stats].sort((a, b) => a.masteryScore - b.masteryScore);
-  
+
   for (const topicStat of sortedStats) {
     const candidate = PROBLEMS.find(
       p => p.topicId === topicStat.topicId && !profile.solvedProblemIds.includes(p.id)
@@ -219,10 +393,10 @@ export function getRecommendedProblem(): Problem | null {
     if (candidate) return candidate;
   }
 
-  // Fallback to any unsolved problem
   return PROBLEMS.find(p => !profile.solvedProblemIds.includes(p.id)) || PROBLEMS[0];
 }
 
+/** Lưu và lấy lịch sử chat Socratic của tài khoản */
 export function getProblemChat(problemId: string): ChatMessage[] {
   const profile = getUserProfile();
   return profile.aiChats[problemId] || [];

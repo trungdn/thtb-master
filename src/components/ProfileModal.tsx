@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { UserProfile } from '../types';
-import { saveUserProfile, DEFAULT_PROFILE } from '../utils/storage';
-import { X, Trophy, Flame, Target, User, School, CheckCircle2, RotateCcw, Save } from 'lucide-react';
+import { saveUserProfile, logoutAccount } from '../utils/storage';
+import { X, Trophy, Flame, Target, User, School, CheckCircle2, RotateCcw, Save, LogOut, Users, Sparkles } from 'lucide-react';
 
 interface ProfileModalProps {
   profile: UserProfile;
   isOpen: boolean;
   onClose: () => void;
   onProfileUpdate: () => void;
+  onOpenAuth: () => void;
   totalProblemsCount: number;
 }
 
@@ -16,10 +17,12 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
   isOpen,
   onClose,
   onProfileUpdate,
+  onOpenAuth,
   totalProblemsCount
 }) => {
   if (!isOpen) return null;
 
+  const isGuest = profile.id === 'guest';
   const [name, setName] = useState(profile.name);
   const [school, setSchool] = useState(profile.school);
   const [grade, setGrade] = useState(profile.grade);
@@ -44,9 +47,24 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
     onProfileUpdate();
   };
 
+  const handleLogout = () => {
+    if (confirm('Bạn có chắc muốn đăng xuất khỏi tài khoản này?')) {
+      logoutAccount();
+      onProfileUpdate();
+      onClose();
+    }
+  };
+
   const handleResetProgress = () => {
-    if (confirm('Bạn có chắc muốn đặt lại toàn bộ tiến độ làm bài về mặc định không?')) {
-      saveUserProfile(DEFAULT_PROFILE);
+    if (confirm('Bạn có chắc muốn đặt lại toàn bộ tiến độ làm bài của tài khoản này không?')) {
+      saveUserProfile({
+        ...profile,
+        solvedProblemIds: [],
+        partialProblemIds: [],
+        bookmarkedIds: [],
+        submissions: [],
+        aiChats: {}
+      });
       onProfileUpdate();
       onClose();
     }
@@ -177,7 +195,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
 
           {/* Reset progress button */}
           <div className="pt-2 flex items-center justify-between text-xs text-slate-500">
-            <span>Tiến độ lưu trên trình duyệt của bạn</span>
+            <span>Tiến độ lưu an toàn trên trình duyệt này</span>
             <button
               onClick={handleResetProgress}
               className="text-rose-400 hover:text-rose-300 font-semibold flex items-center gap-1"
@@ -189,21 +207,46 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-800 bg-slate-950">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white"
-          >
-            Đóng
-          </button>
+        <div className="flex items-center justify-between gap-3 px-6 py-4 border-t border-slate-800 bg-slate-950">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                onClose();
+                onOpenAuth();
+              }}
+              className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition-all"
+            >
+              <Users className="w-3.5 h-3.5 text-indigo-400" />
+              <span>Đổi / Tạo tài khoản</span>
+            </button>
 
-          <button
-            onClick={handleSave}
-            className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-xl shadow-lg shadow-indigo-600/30 transition-all"
-          >
-            <Save className="w-4 h-4" />
-            <span>{isSaved ? 'Đã lưu thay đổi!' : 'Lưu thông tin'}</span>
-          </button>
+            {!isGuest && (
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-rose-400 hover:text-rose-300 hover:bg-rose-950/40 rounded-xl transition-all"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span>Đăng xuất</span>
+              </button>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white"
+            >
+              Đóng
+            </button>
+
+            <button
+              onClick={handleSave}
+              className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-xl shadow-lg shadow-indigo-600/30 transition-all"
+            >
+              <Save className="w-4 h-4" />
+              <span>{isSaved ? 'Đã lưu!' : 'Lưu thông tin'}</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
