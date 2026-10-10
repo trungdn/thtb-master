@@ -1,5 +1,5 @@
 import React from 'react';
-import { Trophy, Flame, BookOpen, Layers, Radar, Code2, UserPlus, LogIn, ChevronDown } from 'lucide-react';
+import { Trophy, Flame, BookOpen, Layers, Radar, Code2, UserPlus, LogIn, ChevronDown, Users } from 'lucide-react';
 import type { UserProfile } from '../types';
 
 interface HeaderProps {
@@ -8,6 +8,7 @@ interface HeaderProps {
   onSelectView: (view: 'topics' | 'problems' | 'radar') => void;
   onOpenProfile: () => void;
   onOpenAuth: () => void;
+  onOpenTeacherDashboard: () => void;
   totalProblemsCount: number;
 }
 
@@ -17,6 +18,7 @@ export const Header: React.FC<HeaderProps> = ({
   onSelectView,
   onOpenProfile,
   onOpenAuth,
+  onOpenTeacherDashboard,
   totalProblemsCount
 }) => {
   const isGuest = profile.id === 'guest';
@@ -102,6 +104,16 @@ export const Header: React.FC<HeaderProps> = ({
                 <span className="text-[10px] text-emerald-400 font-bold">({progressPercent}%)</span>
               </div>
             )}
+
+            {/* Nút Quản Trị Lớp Học & Bảng Vàng */}
+            <button
+              onClick={onOpenTeacherDashboard}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 rounded-xl text-xs font-semibold transition-all"
+              title="Bảng vàng học sinh & Quản trị lớp học"
+            >
+              <Users className="w-3.5 h-3.5 text-indigo-400" />
+              <span className="hidden sm:inline">Quản Trị Lớp</span>
+            </button>
 
             {/* If Guest: Login/Register button */}
             {isGuest ? (

@@ -4,8 +4,10 @@ import {
   registerAccount,
   loginAccount,
   switchAccount,
-  isLoggedIn
+  isLoggedIn,
+  saveUserProfile
 } from '../utils/storage';
+import { isSupabaseConnected, loginFromSupabase, registerToSupabase } from '../services/supabase';
 import { UserProfile } from '../types';
 import {
   X,
@@ -19,7 +21,9 @@ import {
   CheckCircle2,
   AlertCircle,
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  Database,
+  Loader2
 } from 'lucide-react';
 
 interface AuthModalProps {
@@ -40,6 +44,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [activeTab, setActiveTab] = useState<'register' | 'login' | 'saved'>(initialTab);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Register Form States
   const [regUsername, setRegUsername] = useState('');
@@ -64,7 +69,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     'Thành thạo Quy hoạch động & Chặt nhị phân'
   ];
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
     setSuccessMsg('');
@@ -79,6 +84,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       return;
     }
 
+    setIsSubmitting(true);
     const res = registerAccount({
       username: regUsername,
       password: regPassword,
@@ -91,7 +97,21 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
     if (!res.success) {
       setErrorMsg(res.error || 'Đăng ký không thành công!');
-    } else if (res.user) {
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (res.user && isSupabaseConnected()) {
+      const cloudRes = await registerToSupabase(res.user);
+      if (!cloudRes.success && cloudRes.error?.includes('đã có')) {
+        setErrorMsg(cloudRes.error);
+        setIsSubmitting(false);
+        return;
+      }
+    }
+
+    setIsSubmitting(false);
+    if (res.user) {
       setSuccessMsg(`Chào mừng ${res.user.name}! Tài khoản của bạn đã được tạo thành công.`);
       setTimeout(() => {
         onAuthSuccess(res.user!);
@@ -100,7 +120,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
     setSuccessMsg('');
@@ -110,7 +130,23 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       return;
     }
 
-    const res = loginAccount(loginUsername, loginPassword);
+    setIsSubmitting(true);
+    let res = loginAccount(loginUsername, loginPassword);
+
+    // Nếu trên máy này chưa có tài khoản, tìm trên Cloud Supabase
+    if (!res.success && isSupabaseConnected()) {
+      const cloudRes = await loginFromSupabase(loginUsername, loginPassword);
+      if (cloudRes.success && cloudRes.user) {
+        saveUserProfile(cloudRes.user);
+        res = { success: true, user: cloudRes.user };
+      } else if (cloudRes.error) {
+        setErrorMsg(cloudRes.error);
+        setIsSubmitting(false);
+        return;
+      }
+    }
+
+    setIsSubmitting(false);
     if (!res.success) {
       setErrorMsg(res.error || 'Đăng nhập không thành công!');
     } else if (res.user) {

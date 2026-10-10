@@ -1,6 +1,11 @@
 import { UserProfile, UserSubmission, Problem, TopicId, ChatMessage } from '../types';
 import { PROBLEMS } from '../data/problemsData';
 import { TOPICS } from '../data/taxonomyData';
+import {
+  registerToSupabase,
+  syncProfileToSupabase,
+  recordSubmissionToSupabase
+} from '../services/supabase';
 
 const ACCOUNTS_KEY = 'thtb_accounts_v2';
 const ACTIVE_USERNAME_KEY = 'thtb_active_username_v2';
@@ -159,6 +164,11 @@ export function saveUserProfile(profile: UserProfile): void {
   accounts[profile.username] = profile;
   saveAllAccounts(accounts);
   setActiveUsername(profile.username);
+
+  // Tự động đồng bộ lên Supabase Cloud Database nếu có kết nối
+  syncProfileToSupabase(profile).catch(err => {
+    console.debug('Lưu offline cục bộ:', err);
+  });
 }
 
 /** Đăng ký tài khoản mới */
@@ -209,6 +219,11 @@ export function registerAccount(data: {
   accounts[cleanUsername] = newProfile;
   saveAllAccounts(accounts);
   setActiveUsername(cleanUsername);
+
+  // Tự động đẩy lên Supabase Cloud Database
+  registerToSupabase(newProfile).catch(err => {
+    console.debug('Lưu tài khoản offline cục bộ:', err);
+  });
 
   return { success: true, user: newProfile };
 }
@@ -301,6 +316,12 @@ export function recordSubmission(
   }
 
   saveUserProfile(profile);
+
+  // Ghi nhận submission lên Supabase Cloud Database
+  recordSubmissionToSupabase(profile.username, newSubmission).catch(err => {
+    console.debug('Lưu submission offline cục bộ:', err);
+  });
+
   return newSubmission;
 }
 

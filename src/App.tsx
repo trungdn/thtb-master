@@ -7,6 +7,7 @@ import { ProblemWorkspace } from './components/ProblemWorkspace';
 import { TheoryModal } from './components/TheoryModal';
 import { ProfileModal } from './components/ProfileModal';
 import { AuthModal } from './components/AuthModal';
+import { TeacherDashboard } from './components/TeacherDashboard';
 import { TOPICS } from './data/taxonomyData';
 import { PROBLEMS } from './data/problemsData';
 import { getUserProfile, getRadarTopicStats, getRecommendedProblem } from './utils/storage';
@@ -33,6 +34,7 @@ export function App() {
   const [theoryTopic, setTheoryTopic] = useState<Topic | null>(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [isTeacherDashboardOpen, setIsTeacherDashboardOpen] = useState(false);
 
   // Refresh user profile state
   const refreshProfile = () => {
@@ -65,6 +67,7 @@ export function App() {
         }}
         onOpenProfile={() => setIsProfileOpen(true)}
         onOpenAuth={() => setIsAuthOpen(true)}
+        onOpenTeacherDashboard={() => setIsTeacherDashboardOpen(true)}
         totalProblemsCount={PROBLEMS.length}
       />
 
@@ -272,6 +275,16 @@ export function App() {
         onAuthSuccess={_user => {
           refreshProfile();
           setIsAuthOpen(false);
+        }}
+      />
+
+      <TeacherDashboard
+        isOpen={isTeacherDashboardOpen}
+        onClose={() => setIsTeacherDashboardOpen(false)}
+        onSelectProblem={problemId => {
+          setIsTeacherDashboardOpen(false);
+          const p = PROBLEMS.find(item => item.id === problemId);
+          if (p) setActiveProblem(p);
         }}
       />
     </div>
